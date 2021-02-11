@@ -1,23 +1,27 @@
-//Require libraries
+//Require internal modules
 const DISCORD = require("discord.js");
-    global.client = new DISCORD.Client();
+    const client = new DISCORD.Client();
+const HUNGER_GAMES = require("./hungergames.js");
+    HUNGER_GAMES.Setup();
 
-//Require internal scripts
-const CONFIG = require("./config.json");
-const CMDSHANDLER = require("./cmds.js");
-const SECRET = require("./data/secret.json");
+//Load the modules set up for commands
+const COMMAND_MODULES = {
+    [HUNGER_GAMES.Command]:HUNGER_GAMES
+};
 
-//Bot started
-client.on("ready",() => {
-    console.log("Hunger Games bot successfully started!");
-});
-
-//Message sent
-client.on("message", message => {
-    if (message.content.startsWith("!")) {
-        CMDSHANDLER.Scan(message);
+client.on("message",(message) => {
+    if (message.content.startsWith(CONFIG.CommandPrefix)) {
+        let args = message.content.split(" ");
+        if (COMMAND_MODULES[args[0].replace(CONFIG.CommandPrefix,"")]) {
+            if (COMMAND_MODULES[args[0].replace(CONFIG.CommandPrefix,"")].SubCommands) {
+                if (COMMAND_MODULES[args[0].replace(CONFIG.CommandPrefix,"")].SubCommands[args[1].toLowerCase()]) {
+                    COMMAND_MODULES[args[0].replace(CONFIG.CommandPrefix,"")].SubCommands[args[1].toLowerCase()].Execute(client,message,args);
+                };
+            } else {
+                COMMAND_MODULES[args[0].replace(CONFIG.CommandPrefix,"")].Execute(client,message,args);
+            };
+        };
     };
 });
 
-//Login to the bot
-client.login(SECRET.token);
+client.login(YOUR_TOKEN);
